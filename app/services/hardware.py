@@ -175,9 +175,95 @@ class HardwareReader:
             "write_time_ms": int(io.write_time)
         }
         
+    # Red
+    def get_network_io(self, per_nic: bool = False) -> Dict[str, NetIoInfo] | NetIoInfo:
+        if per_nic:
+            by_nic = psutil.net_io_counters(pernic=True)
+            out: Dict[str, NetIoInfo] = {}
+            
+            for nic, c in by_nic.items():
+                out[nic] = NetIoInfo(
+                    bytes_sent=int(c.bytes_sent),
+                    bytes_recv=int(c.bytes_recv),
+                    packets_sent=int(c.packets_sent),
+                    packets_recv=int(c.packets_recv),
+                    errin=int(c.errin),
+                    errout=int(c.errout),
+                    dropin=int(c.dropin),
+                    dropout=int(c.dropout)
+                )
+                
+            return out
+        
+        c = psutil.net_io_counters()
+        
+        return NetIoInfo(
+            bytes_sent=int(c.bytes_sent),
+            bytes_recv=int(c.bytes_recv),
+            packets_sent=int(c.packets_sent),
+            packets_recv=int(c.packets_recv),
+            errin=int(c.errin),
+            errout=int(c.errout),
+            dropin=int(c.dropin),
+            dropout=int(c.dropout)
+        )
+        
+    # Temperatura
+    def get_temperatures(self) -> List[TemperatureReading]:
+        temps: List[TemperatureReading] = []
+        
+        if not hasattr(psutil, "sensors_temperatures"):
+            return temps
+        
+        try:
+            data = psutil.sensors_temperatures(fahrenheit=False) or {}
+            
+        except Exception:
+            logging.error("Error al obtener la temperatura")
+            return temps
+        
+        for sensor_name, entries in data.items():
+            for e in entries:
+                temps.append(
+                    TemperatureReading(
+                        name=str(sensor_name),
+                        label=str(e.label or ""),
+                        current=float(e.current) if e.current is not None else float("nan"),
+                        high=float(e.high) if e.high is not None else None,
+                        critical=float(e.critical) if e.critical is not None else None
+                    )
+                )
+                
+        return temps
+    
+    # Snapshot
+    def snapshot(self) -> Dict[str, Any]:
+        cpu = self.get_cpu_usage()
+        mem = self.get_memory()
+        disks = self.get_disks()
+        temp = self.get_temperatures()
+        
+        return {
+            "ts": time.time(),
+            "cpu": asdict(cpu),
+            "memory": asdict(mem),
+            "disks": [asdict(d) for d in disks],
+            "disk_io": self.get_disk_io(),
+            "temps": [asdict(t) for t in temp],
+            "network": asdict(self.get_network_io(per_nic=False))
+        }
+        
+    # Helper
+    def bytes_to_human(n: int) -> str:
+        units = ["B", "KB", "MB", "GB", "TB", "PB"]
+        x = float(n)
+        
+        for u in units:
+            if x < 1024.0:
+                return f"{x:.1f} {u}"
+            
+            x /= 1024.0
+            
+        return f"{x:.1f} EB"
+        
 
-hw = HardwareReader(cpu_interval=0.2)
-print(hw.get_cpu_usage())
-print(hw.get_memory())
-print(hw.get_disks())
-print(hw.get_disk_io())
