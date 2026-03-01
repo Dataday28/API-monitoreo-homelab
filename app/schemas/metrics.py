@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Optional, Any
+from typing import List, Optional, Any, Dict
 
 class CpuInfo(BaseModel):
     usage_percent: float
@@ -51,7 +51,7 @@ class TemperatureReading(BaseModel):
 class SystemMetricsSnapshot(BaseModel):
     cpu: CpuInfo
     memory: MemoryInfo
-    disks: DiskPartitionInfo
-    diks_io: dict[str, Any]
-    temps: TemperatureReading
+    disks: List[DiskPartitionInfo]
+    disk_io: Dict[str, Any]
+    temps: List[TemperatureReading] = []
     network: NetIoInfo

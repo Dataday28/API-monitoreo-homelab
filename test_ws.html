@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test WebSocket Sentinel</title>
+</head>
+<body>
+    <h2>Consola de Pruebas: Project Sentinel</h2>
+    <div id="output" style="background: #222; color: #0f0; padding: 10px; font-family: monospace; height: 300px; overflow-y: scroll;">
+        Esperando datos...
+    </div>
+
+    <script>
+        // Conectamos al endpoint que acabas de crear
+        const ws = new WebSocket("ws://localhost:8000/ws/metrics");
+        const output = document.getElementById("output");
+
+        ws.onopen = function() {
+            output.innerHTML += "<br/>[ESTADO] Conectado al servidor WebSocket.";
+        };
+
+        ws.onmessage = function(event) {
+            // Recibimos tu JSON validado por Pydantic
+            const data = JSON.parse(event.data);
+            output.innerHTML += `<br/>[DATOS] CPU: ${data.cpu.usage_percent}% | RAM: ${data.memory.percent}% | Red Enviada: ${data.network.bytes_sent}`;
+            output.scrollTop = output.scrollHeight; // Auto-scroll
+        };
+
+        ws.onerror = function(error) {
+            output.innerHTML += "<br/>[ERROR] Hubo un problema con la conexión.";
+        };
+    </script>
+</body>
+</html>
