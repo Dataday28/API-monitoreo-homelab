@@ -1,7 +1,7 @@
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Any
 
-class CpuInfo:
+class CpuInfo(BaseModel):
     usage_percent: float
     per_core_percent: List[float]
     freq_current_mhz: Optional[float]
@@ -13,7 +13,7 @@ class CpuInfo:
     load_avg_5: Optional[float]
     load_avg_15: Optional[float]
     
-class MemoryInfo:
+class MemoryInfo(BaseModel):
     total: int
     avalible: int
     used: int
@@ -22,7 +22,7 @@ class MemoryInfo:
     swap_used: int
     swap_percent: float
 
-class DiskPartitionInfo:
+class DiskPartitionInfo(BaseModel):
     device: str
     mountpoint: str
     fstype: str
@@ -31,7 +31,7 @@ class DiskPartitionInfo:
     free: int
     percent: float
     
-class NetIoInfo:
+class NetIoInfo(BaseModel):
     bytes_sent: int
     bytes_recv: int
     packets_sent: int
@@ -41,7 +41,7 @@ class NetIoInfo:
     dropin: int
     dropout: int
     
-class TemperatureReading:
+class TemperatureReading(BaseModel):
     name: str
     label: str
     current: float
@@ -52,6 +52,6 @@ class SystemMetricsSnapshot(BaseModel):
     cpu: CpuInfo
     memory: MemoryInfo
     disks: DiskPartitionInfo
-    diks_io: dict[str, any]
+    diks_io: dict[str, Any]
     temps: TemperatureReading
     network: NetIoInfo
