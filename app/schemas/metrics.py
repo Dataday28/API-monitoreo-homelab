@@ -49,6 +49,7 @@ class TemperatureReading(BaseModel):
     critical: Optional[float]
     
 class SystemMetricsSnapshot(BaseModel):
+    ts: float
     cpu: CpuInfo
     memory: MemoryInfo
     disks: List[DiskPartitionInfo]
